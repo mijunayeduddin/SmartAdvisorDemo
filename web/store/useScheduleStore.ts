@@ -1,0 +1,312 @@
+import { create } from 'zustand';
+import { Course, Section, StudentContext, FallbackRouteResponse, StrategyMode } from '../types';
+
+interface ScheduleStore {
+  courses: Course[];
+  sections: Section[];
+  student: StudentContext | null;
+  enrolledSections: Section[];
+  criticalPath: string[];
+  eligibleCourses: string[];
+  fallbackProposal: FallbackRouteResponse | null;
+  strategy: StrategyMode;
+  lastSyncedTimestamp: string | null;
+  wsConnected: boolean;
+  isLoading: boolean;
+  searchQuery: string;
+  selectedCourseCode: string | null;
+
+  init: () => Promise<void>;
+  connectWebSocket: () => void;
+  setStrategy: (strategy: StrategyMode) => void;
+  setSearchQuery: (query: string) => void;
+  setSelectedCourseCode: (code: string | null) => void;
+  simulateAddSection: (courseCode: string, sectionNumber: number) => Promise<FallbackRouteResponse | null>;
+  dropSection: (sectionId: string) => void;
+  acceptFallback: () => void;
+  rejectFallback: () => void;
+  triggerManualSync: () => Promise<void>;
+}
+
+export const useScheduleStore = create<ScheduleStore>((set, get) => {
+  let wsInstance: WebSocket | null = null;
+  let reconnectTimeout: any = null;
+
+  return {
+    courses: [],
+    sections: [],
+    student: null,
+    enrolledSections: [],
+    criticalPath: [],
+    eligibleCourses: [],
+    fallbackProposal: null,
+    strategy: 'MilestonePriority',
+    lastSyncedTimestamp: null,
+    wsConnected: false,
+    isLoading: true,
+    searchQuery: '',
+    selectedCourseCode: null,
+
+    setStrategy: (strategy: StrategyMode) => {
+      set({ strategy });
+    },
+
+    setSearchQuery: (searchQuery: string) => {
+      set({ searchQuery });
+    },
+
+    setSelectedCourseCode: (selectedCourseCode: string | null) => {
+      set({ selectedCourseCode });
+    },
+
+    init: async () => {
+      set({ isLoading: true });
+      try {
+        // 1. Fetch courses with student critical path context
+        const coursesRes = await fetch('/api/courses?studentId=2412800642');
+        const coursesData = await coursesRes.json();
+
+        // 2. Fetch available sections
+        const sectionsRes = await fetch('/api/schedule/sections?term=Fall 2026');
+        const sectionsData = await sectionsRes.json();
+
+        const courses: Course[] = coursesData.courses || [];
+        const sections: Section[] = sectionsData.sections || [];
+        const cPath = courses.filter((c) => c.isCriticalPath).map((c) => c.code);
+        const eligible = courses.filter((c) => c.isEligible).map((c) => c.code);
+
+        set({
+          courses,
+          sections,
+          student: coursesData.studentContext || {
+            studentId: '2412800642',
+            name: 'Tariqul Islam',
+            completedCredits: 70,
+            completedCoursesCount: 24,
+            criticalPathLength: cPath.length,
+          },
+          criticalPath: cPath,
+          eligibleCourses: eligible,
+          lastSyncedTimestamp: new Date().toISOString(),
+          isLoading: false,
+        });
+
+        // 3. Connect WebSocket observer
+        get().connectWebSocket();
+      } catch (err) {
+        console.error('[ScheduleStore] Failed to initialize data:', err);
+        set({ isLoading: false });
+      }
+    },
+
+    connectWebSocket: () => {
+      if (typeof window === 'undefined') return;
+      if (wsInstance && (wsInstance.readyState === WebSocket.OPEN || wsInstance.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.hostname}:5000/ws`;
+
+      try {
+        wsInstance = new WebSocket(wsUrl);
+
+        wsInstance.onopen = () => {
+          console.log('[WebSocket] Connected to SmartAdvisor backend observer');
+          set({ wsConnected: true });
+          // Subscribe to real-time events
+          wsInstance?.send(JSON.stringify({ action: 'subscribe' }));
+        };
+
+        wsInstance.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'SEAT_UPDATE') {
+              const payload = data.payload;
+              const eventTimestamp = data.timestamp || new Date().toISOString();
+
+              set((state) => {
+                const updatedSections = state.sections.map((sec) => {
+                  if (sec.id === payload.sectionId || 
+                     (sec.course_code === payload.courseCode && sec.section_number === Number(payload.sectionNumber))) {
+                    return {
+                      ...sec,
+                      seats_available: Number(payload.seatsAvailable),
+                      capacity: payload.capacity ? Number(payload.capacity) : sec.capacity,
+                      enrolled_count: payload.enrolledCount !== undefined ? Number(payload.enrolledCount) : sec.enrolled_count,
+                    };
+                  }
+                  return sec;
+                });
+
+                const updatedEnrolled = state.enrolledSections.map((sec) => {
+                  if (sec.id === payload.sectionId) {
+                    return {
+                      ...sec,
+                      seats_available: Number(payload.seatsAvailable),
+                    };
+                  }
+                  return sec;
+                });
+
+                return {
+                  sections: updatedSections,
+                  enrolledSections: updatedEnrolled,
+                  lastSyncedTimestamp: eventTimestamp,
+                };
+              });
+            } else if (data.type === 'SCHEDULE_SYNC') {
+              const eventTimestamp = data.timestamp || new Date().toISOString();
+              set({ lastSyncedTimestamp: eventTimestamp });
+            }
+          } catch (e) {
+            console.error('[WebSocket] Error processing message:', e);
+          }
+        };
+
+        wsInstance.onclose = () => {
+          console.warn('[WebSocket] Closed. Attempting reconnect in 3s...');
+          set({ wsConnected: false });
+          clearTimeout(reconnectTimeout);
+          reconnectTimeout = setTimeout(() => {
+            get().connectWebSocket();
+          }, 3000);
+        };
+
+        wsInstance.onerror = (err) => {
+          console.error('[WebSocket] Error:', err);
+          wsInstance?.close();
+        };
+      } catch (err) {
+        console.error('[WebSocket] Connection attempt failed:', err);
+        set({ wsConnected: false });
+      }
+    },
+
+    simulateAddSection: async (courseCode: string, sectionNumber: number) => {
+      const state = get();
+      try {
+        const payload = {
+          studentId: '2412800642',
+          courseCode: courseCode.trim().toUpperCase(),
+          sectionNumber: Number(sectionNumber),
+          strategy: state.strategy,
+          currentSchedule: state.enrolledSections,
+        };
+
+        const res = await fetch('/api/schedule/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data: FallbackRouteResponse = await res.json();
+
+        if (data.status === 'FALLBACK_PROPOSED') {
+          set({ fallbackProposal: data });
+          return data;
+        }
+
+        if (data.status === 'ACCEPTED') {
+          // Find matching section in sections list
+          const targetSection = state.sections.find(
+            (s) => s.course_code === courseCode && s.section_number === Number(sectionNumber)
+          ) || {
+            id: data.requested.sectionId || `${courseCode}-${sectionNumber}`,
+            course_code: data.requested.courseCode,
+            section_number: data.requested.sectionNumber || 1,
+            capacity: data.requested.capacity || 35,
+            enrolled_count: (data.requested.capacity || 35) - (data.requested.seatsAvailable || 1),
+            seats_available: data.requested.seatsAvailable,
+            day_of_week: data.requested.dayOfWeek || 'ST',
+            start_time: data.requested.startTime || '08:00:00',
+            end_time: data.requested.endTime || '09:30:00',
+            faculty_name: data.requested.facultyName || 'TBA',
+          };
+
+          // Check if already in enrolled
+          const alreadyEnrolled = state.enrolledSections.some(
+            (s) => s.course_code === targetSection.course_code
+          );
+
+          if (!alreadyEnrolled) {
+            set((prev) => ({
+              enrolledSections: [...prev.enrolledSections, targetSection],
+              fallbackProposal: null,
+            }));
+          }
+          return data;
+        }
+
+        if (data.status === 'NO_ALTERNATIVE') {
+          set({ fallbackProposal: data });
+          return data;
+        }
+
+        return data;
+      } catch (err) {
+        console.error('[ScheduleStore] Error simulating add:', err);
+        return null;
+      }
+    },
+
+    dropSection: (sectionId: string) => {
+      set((state) => ({
+        enrolledSections: state.enrolledSections.filter((s) => s.id !== sectionId),
+      }));
+    },
+
+    acceptFallback: () => {
+      const state = get();
+      if (!state.fallbackProposal || !state.fallbackProposal.alternative) return;
+
+      const alt = state.fallbackProposal.alternative;
+      const targetSection = state.sections.find(
+        (s) => s.id === alt.sectionId || (s.course_code === alt.courseCode && s.section_number === alt.sectionNumber)
+      ) || {
+        id: alt.sectionId,
+        course_code: alt.courseCode,
+        section_number: alt.sectionNumber,
+        capacity: alt.capacity || 35,
+        enrolled_count: (alt.capacity || 35) - alt.seatsAvailable,
+        seats_available: alt.seatsAvailable,
+        day_of_week: alt.dayOfWeek || 'MW',
+        start_time: alt.startTime || '09:30:00',
+        end_time: alt.endTime || '11:00:00',
+        room: alt.room || 'SAC 601',
+        faculty_name: alt.facultyName || 'Selim Ahmed',
+      };
+
+      // Replace or add to enrolled sections
+      const filtered = state.enrolledSections.filter(
+        (s) => s.course_code !== targetSection.course_code
+      );
+
+      set({
+        enrolledSections: [...filtered, targetSection],
+        fallbackProposal: null,
+      });
+    },
+
+    rejectFallback: () => {
+      set({ fallbackProposal: null });
+    },
+
+    triggerManualSync: async () => {
+      try {
+        const res = await fetch('/api/schedule/sync-now', { method: 'POST' });
+        const data = await res.json();
+        set({ lastSyncedTimestamp: new Date().toISOString() });
+        // Refresh sections
+        const sectionsRes = await fetch('/api/schedule/sections?term=Fall 2026');
+        const sectionsData = await sectionsRes.json();
+        if (sectionsData.sections) {
+          set({ sections: sectionsData.sections });
+        }
+      } catch (e) {
+        console.error('Manual sync failed:', e);
+      }
+    },
+  };
+});

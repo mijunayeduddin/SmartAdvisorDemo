@@ -22,6 +22,10 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api', apiRoutes);
 
+// Direct root-level aliases for core endpoints
+app.use('/courses', require('./routes/courses.routes'));
+app.use('/schedule', require('./routes/schedule.routes'));
+
 // Health alias at root level for container healthchecks
 app.get('/health', (req, res) => {
   res.redirect('/api/health');

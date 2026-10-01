@@ -24,7 +24,10 @@ SmartAdvisorDemo/
 │   │   └── server.js         # HTTP + WebSocket server bootstrap
 │   └── package.json
 │
-├── web/                      # React / Next.js Web Client (Upcoming)
+├── web/                      # React / Next.js Web Client (App Router, Tailwind, Zustand)
+│   ├── app/                  # Dashboard page, layout, globals.css
+│   ├── components/           # DAG visualizer, fallback banner, course search, live ticker
+│   ├── store/                # Zustand schedule & WebSocket store
 │   ├── package.json
 │   └── README.md
 │
@@ -93,10 +96,16 @@ npm --prefix backend run seed
 ```
 *Seeds the complete 130-credit-hour BSCSE curriculum (37 courses, 28 prerequisite edges) and demo student `2412800642` with 70 completed credits.*
 
-### Start Server
+### Start Backend Server
 ```bash
 npm --prefix backend run dev
 ```
+
+### Start Web Client (Next.js)
+```bash
+npm --prefix web run dev
+```
+*Access the SmartAdvisor Dashboard at [http://localhost:3000](http://localhost:3000).*
 
 ### Health Check Endpoint
 ```bash

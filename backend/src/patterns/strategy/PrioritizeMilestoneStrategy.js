@@ -1,4 +1,5 @@
 const ScheduleStrategy = require('./ScheduleStrategy');
+const { MilestonePriorityStrategy: CoreMilestoneStrategy } = require('../../../core/strategy/scheduleStrategy.ts');
 
 /**
  * Strategy Pattern: Prioritize Milestone Courses
@@ -7,20 +8,30 @@ const ScheduleStrategy = require('./ScheduleStrategy');
 class PrioritizeMilestoneStrategy extends ScheduleStrategy {
   constructor() {
     super('Prioritize Milestone Courses');
+    this.coreStrategy = new CoreMilestoneStrategy();
   }
 
-  /**
-   * Concrete algorithm implementation placeholder (To be implemented in Day 2)
-   */
+  rankAlternatives(student, curriculumGraph, availableSections, rejectedCourseCode, constraints) {
+    return this.coreStrategy.rankAlternatives(
+      student,
+      curriculumGraph,
+      availableSections,
+      rejectedCourseCode,
+      constraints
+    );
+  }
+
   async generateSchedule(student, curriculumGraph, availableSections, constraints = {}) {
-    // Scaffold: to be populated with graph algorithm integration
-    return {
-      strategyUsed: this.name,
-      studentId: student.id,
-      sections: [],
-      rationale: 'Prioritized gateway and milestone prerequisite courses.'
-    };
+    return this.coreStrategy.generateSchedule(
+      student,
+      curriculumGraph,
+      availableSections,
+      constraints
+    );
   }
 }
 
+PrioritizeMilestoneStrategy.MilestonePriorityStrategy = PrioritizeMilestoneStrategy;
+
 module.exports = PrioritizeMilestoneStrategy;
+module.exports.MilestonePriorityStrategy = PrioritizeMilestoneStrategy;

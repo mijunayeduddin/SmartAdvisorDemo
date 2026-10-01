@@ -64,6 +64,5 @@ class GraphCache {
 
 // Export singleton instance
 const instance = new GraphCache();
-Object.freeze(instance);
 
 module.exports = instance;

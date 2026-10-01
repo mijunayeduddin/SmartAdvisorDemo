@@ -19,6 +19,11 @@ const config = {
   },
   ws: {
     path: process.env.WS_PATH || '/ws',
+  },
+  sync: {
+    demoMode: process.env.DEMO_MODE === 'true',
+    term: process.env.SYNC_TERM || 'Fall 2026',
+    intervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '300000', 10),
   }
 };
 

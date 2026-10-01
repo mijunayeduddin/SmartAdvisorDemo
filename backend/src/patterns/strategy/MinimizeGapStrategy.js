@@ -1,4 +1,5 @@
 const ScheduleStrategy = require('./ScheduleStrategy');
+const { MinimizeGapsStrategy: CoreMinimizeGapsStrategy } = require('../../../core/strategy/scheduleStrategy.ts');
 
 /**
  * Strategy Pattern: Minimize Campus Gaps
@@ -7,20 +8,30 @@ const ScheduleStrategy = require('./ScheduleStrategy');
 class MinimizeGapStrategy extends ScheduleStrategy {
   constructor() {
     super('Minimize Campus Gaps');
+    this.coreStrategy = new CoreMinimizeGapsStrategy();
   }
 
-  /**
-   * Concrete algorithm implementation placeholder (To be implemented in Day 2)
-   */
+  rankAlternatives(student, curriculumGraph, availableSections, rejectedCourseCode, constraints) {
+    return this.coreStrategy.rankAlternatives(
+      student,
+      curriculumGraph,
+      availableSections,
+      rejectedCourseCode,
+      constraints
+    );
+  }
+
   async generateSchedule(student, curriculumGraph, availableSections, constraints = {}) {
-    // Scaffold: to be populated with gap optimization solver
-    return {
-      strategyUsed: this.name,
-      studentId: student.id,
-      sections: [],
-      rationale: 'Optimized for minimal idle gap between on-campus lectures.'
-    };
+    return this.coreStrategy.generateSchedule(
+      student,
+      curriculumGraph,
+      availableSections,
+      constraints
+    );
   }
 }
 
+MinimizeGapStrategy.MinimizeGapsStrategy = MinimizeGapStrategy;
+
 module.exports = MinimizeGapStrategy;
+module.exports.MinimizeGapsStrategy = MinimizeGapStrategy;

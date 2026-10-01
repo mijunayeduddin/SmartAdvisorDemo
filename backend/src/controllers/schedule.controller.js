@@ -213,10 +213,144 @@ const triggerSyncNow = async (req, res) => {
   }
 };
 
+/**
+ * In-memory student active draft schedules (Observer Pattern store for cross-device sync)
+ */
+const activeSchedules = new Map();
+
+/**
+ * Helper to get or initialize student's active schedule
+ */
+const getStudentScheduleState = async (studentId = '2412800642') => {
+  if (!activeSchedules.has(studentId)) {
+    const allSections = await curriculumService.getAvailableSections('Fall 2026');
+    // Pre-populate with realistic draft schedule (CSE311 §1 and CSE332 §1)
+    const initial = allSections.filter((s) => 
+      (s.course_code === 'CSE311' && s.section_number === 1) ||
+      (s.course_code === 'CSE332' && s.section_number === 1)
+    );
+    activeSchedules.set(studentId, initial.length > 0 ? initial : []);
+  }
+  return activeSchedules.get(studentId);
+};
+
+/**
+ * GET /schedule/enrolled
+ * Retrieve current registered sections
+ */
+const getEnrolledSchedule = async (req, res) => {
+  try {
+    const studentId = req.query.studentId || '2412800642';
+    const schedule = await getStudentScheduleState(studentId);
+    return res.status(200).json({
+      status: 'success',
+      studentId,
+      schedule
+    });
+  } catch (err) {
+    console.error('[ScheduleController] Error in getEnrolledSchedule:', err);
+    return res.status(500).json({ error: 'Failed to get enrolled schedule' });
+  }
+};
+
+/**
+ * POST /schedule/enrolled
+ * Replace or append to current enrolled schedule and broadcast via Observer pattern
+ */
+const updateEnrolledSchedule = async (req, res) => {
+  try {
+    const { studentId = '2412800642', schedule, action = 'UPDATED', section, sectionId } = req.body;
+    let nextSchedule = schedule;
+    if (!nextSchedule) {
+      const current = await getStudentScheduleState(studentId);
+      if (section) {
+        nextSchedule = [...current.filter(s => s.course_code !== section.course_code), section];
+      } else {
+        nextSchedule = current;
+      }
+    }
+    activeSchedules.set(studentId, nextSchedule);
+
+    // Broadcast to all WebSocket clients (Web & Mobile)
+    seatAvailabilityPublisher.notifyScheduleSync({
+      studentId,
+      action,
+      sectionId,
+      section,
+      schedule: nextSchedule
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      studentId,
+      schedule: nextSchedule
+    });
+  } catch (err) {
+    console.error('[ScheduleController] Error in updateEnrolledSchedule:', err);
+    return res.status(500).json({ error: 'Failed to update enrolled schedule' });
+  }
+};
+
+/**
+ * DELETE /schedule/enrolled/:id or POST /schedule/drop
+ * Drop an enrolled section and immediately notify all connected observers
+ */
+const dropEnrolledSection = async (req, res) => {
+  try {
+    const studentId = req.body?.studentId || req.query?.studentId || '2412800642';
+    const targetId = req.params?.id || req.body?.sectionId;
+    const current = await getStudentScheduleState(studentId);
+
+    const updated = current.filter(
+      (s) => s.id !== targetId && `${s.course_code}-${s.section_number}` !== targetId && s.course_code !== targetId
+    );
+    activeSchedules.set(studentId, updated);
+
+    // Dispatch real-time SCHEDULE_SYNC event through WebSocket Observer
+    seatAvailabilityPublisher.notifyScheduleSync({
+      studentId,
+      action: 'DROPPED',
+      sectionId: targetId,
+      schedule: updated
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      action: 'DROPPED',
+      sectionId: targetId,
+      schedule: updated
+    });
+  } catch (err) {
+    console.error('[ScheduleController] Error in dropEnrolledSection:', err);
+    return res.status(500).json({ error: 'Failed to drop section' });
+  }
+};
+
+/**
+ * POST /schedule/fallback-alert
+ * Explicitly broadcast a fallback proposal to all active clients
+ */
+const broadcastFallbackProposal = async (req, res) => {
+  try {
+    const proposal = req.body.fallbackProposal || req.body;
+    const socketManager = require('../websocket/socketManager');
+    socketManager.broadcast('FALLBACK_PROPOSED', proposal);
+    return res.status(200).json({ status: 'success', proposal });
+  } catch (err) {
+    console.error('[ScheduleController] Error broadcasting fallback proposal:', err);
+    return res.status(500).json({ error: 'Failed to broadcast fallback' });
+  }
+};
+
 module.exports = {
   simulateSchedule,
   getFallback,
   updateSeatCount,
   getSections,
-  triggerSyncNow
+  triggerSyncNow,
+  getEnrolledSchedule,
+  updateEnrolledSchedule,
+  dropEnrolledSection,
+  broadcastFallbackProposal,
+  activeSchedules
 };

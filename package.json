@@ -6,13 +6,15 @@
   "workspaces": [
     "backend",
     "web",
-    "shared"
+    "shared",
+    "mobile"
   ],
   "scripts": {
     "start:backend": "npm --prefix backend start",
     "dev:backend": "npm --prefix backend run dev",
     "migrate:backend": "npm --prefix backend run migrate",
     "seed:backend": "npm --prefix backend run seed",
+    "dev:mobile": "npm --prefix mobile run web",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },

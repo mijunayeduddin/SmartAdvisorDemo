@@ -70,6 +70,18 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         const sectionsRes = await fetch('/api/schedule/sections?term=Fall 2026');
         const sectionsData = await sectionsRes.json();
 
+        // 2b. Fetch active draft enrolled schedule from backend observer store
+        let initialEnrolled: Section[] = [];
+        try {
+          const enrolledRes = await fetch('/api/schedule/enrolled?studentId=2412800642');
+          const enrolledData = await enrolledRes.json();
+          if (enrolledData && Array.isArray(enrolledData.schedule) && enrolledData.schedule.length > 0) {
+            initialEnrolled = enrolledData.schedule;
+          }
+        } catch (e) {
+          console.warn('[ScheduleStore] Could not load initial enrolled schedule:', e);
+        }
+
         const courses: Course[] = coursesData.courses || [];
         const sections: Section[] = sectionsData.sections || [];
         const cPath = courses.filter((c) => c.isCriticalPath).map((c) => c.code);
@@ -78,6 +90,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         set({
           courses,
           sections,
+          enrolledSections: initialEnrolled,
           student: coursesData.studentContext || {
             studentId: '2412800642',
             name: 'Tariqul Islam',
@@ -157,8 +170,32 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
                 };
               });
             } else if (data.type === 'SCHEDULE_SYNC') {
+              const payload = data.payload || {};
               const eventTimestamp = data.timestamp || new Date().toISOString();
-              set({ lastSyncedTimestamp: eventTimestamp });
+              set((state) => {
+                let updated = state.enrolledSections;
+                if (payload.schedule && Array.isArray(payload.schedule)) {
+                  updated = payload.schedule;
+                } else if (payload.action === 'DROPPED' && payload.sectionId) {
+                  updated = state.enrolledSections.filter(
+                    (s) => s.id !== payload.sectionId && `${s.course_code}-${s.section_number}` !== payload.sectionId && s.course_code !== payload.sectionId
+                  );
+                } else if (payload.action === 'ENROLLED' && payload.section) {
+                  const filtered = state.enrolledSections.filter(
+                    (s) => s.course_code !== payload.section.course_code
+                  );
+                  updated = [...filtered, payload.section];
+                }
+                return {
+                  enrolledSections: updated,
+                  lastSyncedTimestamp: eventTimestamp,
+                };
+              });
+            } else if (data.type === 'FALLBACK_PROPOSED') {
+              set({
+                fallbackProposal: data.payload,
+                lastSyncedTimestamp: data.timestamp || new Date().toISOString(),
+              });
             }
           } catch (e) {
             console.error('[WebSocket] Error processing message:', e);
@@ -205,6 +242,13 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
         if (data.status === 'FALLBACK_PROPOSED') {
           set({ fallbackProposal: data });
+          // Broadcast emergency fallback alert to all WebSocket observers (e.g. mobile)
+          if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+            wsInstance.send(JSON.stringify({
+              type: 'FALLBACK_PROPOSED',
+              payload: data
+            }));
+          }
           return data;
         }
 
@@ -231,16 +275,36 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
           );
 
           if (!alreadyEnrolled) {
-            set((prev) => ({
-              enrolledSections: [...prev.enrolledSections, targetSection],
+            const nextEnrolled = [...state.enrolledSections, targetSection];
+            set({
+              enrolledSections: nextEnrolled,
               fallbackProposal: null,
-            }));
+            });
+
+            // Broadcast enrollment to mobile observer
+            if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+              wsInstance.send(JSON.stringify({
+                type: 'SCHEDULE_SYNC',
+                payload: {
+                  studentId: '2412800642',
+                  action: 'ENROLLED',
+                  section: targetSection,
+                  schedule: nextEnrolled
+                }
+              }));
+            }
           }
           return data;
         }
 
         if (data.status === 'NO_ALTERNATIVE') {
           set({ fallbackProposal: data });
+          if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+            wsInstance.send(JSON.stringify({
+              type: 'FALLBACK_PROPOSED',
+              payload: data
+            }));
+          }
           return data;
         }
 
@@ -252,9 +316,31 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     },
 
     dropSection: (sectionId: string) => {
-      set((state) => ({
-        enrolledSections: state.enrolledSections.filter((s) => s.id !== sectionId),
-      }));
+      const state = get();
+      const updated = state.enrolledSections.filter(
+        (s) => s.id !== sectionId && `${s.course_code}-${s.section_number}` !== sectionId && s.course_code !== sectionId
+      );
+      set({ enrolledSections: updated });
+
+      // 1. Broadcast immediately to WebSocket Observer (Mobile updates in <50ms)
+      if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+        wsInstance.send(JSON.stringify({
+          type: 'SCHEDULE_SYNC',
+          payload: {
+            studentId: '2412800642',
+            action: 'DROPPED',
+            sectionId,
+            schedule: updated
+          }
+        }));
+      }
+
+      // 2. Persist to backend
+      fetch(`/api/schedule/enrolled/${sectionId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: '2412800642', sectionId })
+      }).catch((e) => console.error('Error syncing drop:', e));
     },
 
     acceptFallback: () => {
@@ -282,11 +368,37 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const filtered = state.enrolledSections.filter(
         (s) => s.course_code !== targetSection.course_code
       );
+      const nextEnrolled = [...filtered, targetSection];
 
       set({
-        enrolledSections: [...filtered, targetSection],
+        enrolledSections: nextEnrolled,
         fallbackProposal: null,
       });
+
+      // Broadcast accepted fallback to mobile observer
+      if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+        wsInstance.send(JSON.stringify({
+          type: 'SCHEDULE_SYNC',
+          payload: {
+            studentId: '2412800642',
+            action: 'ENROLLED',
+            section: targetSection,
+            schedule: nextEnrolled
+          }
+        }));
+      }
+
+      // Persist to backend
+      fetch('/api/schedule/enrolled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: '2412800642',
+          action: 'ENROLLED',
+          section: targetSection,
+          schedule: nextEnrolled
+        })
+      }).catch((e) => console.error('Error persisting accepted fallback:', e));
     },
 
     rejectFallback: () => {

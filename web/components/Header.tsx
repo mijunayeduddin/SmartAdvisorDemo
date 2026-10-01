@@ -70,6 +70,14 @@ export const Header: React.FC = () => {
 
           {/* Live Sync Badge */}
           <LiveSyncBadge />
+
+          <a
+            id="nav-split-sync"
+            href="/split-sync"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors"
+          >
+            <span>📱 Side-by-Side</span>
+          </a>
         </div>
       </div>
     </header>

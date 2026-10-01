@@ -1,6 +1,5 @@
 const curriculumService = require('../services/curriculumService');
 const { criticalPath, eligibleCourses } = require('../../core/graphSolver.ts');
-const dbPool = require('../patterns/singleton/dbPool');
 
 /**
  * Controller for Course Catalog operations
@@ -11,47 +10,8 @@ const getCourses = async (req, res) => {
 
     const graph = await curriculumService.getCurriculumGraph();
 
-    // Query courses catalog
-    let courseQuery = `
-      SELECT 
-        c.id,
-        c.code,
-        c.title,
-        c.credits,
-        c.department,
-        c.description,
-        c.is_milestone,
-        COALESCE(
-          json_agg(p.code) FILTER (WHERE p.code IS NOT NULL),
-          '[]'
-        ) AS prerequisites
-      FROM courses c
-      LEFT JOIN prerequisites pr ON pr.course_id = c.id
-      LEFT JOIN courses p ON p.id = pr.prereq_course_id
-    `;
-
-    const params = [];
-    if (department) {
-      params.push(department);
-      courseQuery += ` WHERE c.department = $1`;
-    }
-
-    courseQuery += `
-      GROUP BY c.id, c.code, c.title, c.credits, c.department, c.description, c.is_milestone
-      ORDER BY c.code;
-    `;
-
-    const coursesRes = await dbPool.query(courseQuery, params);
-    let courses = coursesRes.rows.map((row) => ({
-      id: row.id,
-      code: row.code,
-      title: row.title,
-      credits: Number(row.credits),
-      department: row.department,
-      description: row.description,
-      isMilestone: Boolean(row.is_milestone),
-      prerequisites: row.prerequisites || []
-    }));
+    // Query courses catalog (with automatic database or fallback handling)
+    let courses = await curriculumService.getAllCourses(department);
 
     // Attach student eligibility and critical path context if studentId provided
     let studentContext = null;

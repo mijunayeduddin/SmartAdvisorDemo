@@ -96,6 +96,7 @@ export const CurrentSchedule: React.FC = () => {
                     {sec.seats_available} open
                   </span>
                   <button
+                    id={`drop-btn-${sec.course_code}`}
                     onClick={() => dropSection(sec.id)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-rose-300 hover:bg-rose-950/40 transition-colors"
                     title="Drop section"

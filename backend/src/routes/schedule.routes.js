@@ -4,7 +4,11 @@ const {
   getFallback,
   updateSeatCount,
   getSections,
-  triggerSyncNow
+  triggerSyncNow,
+  getEnrolledSchedule,
+  updateEnrolledSchedule,
+  dropEnrolledSection,
+  broadcastFallbackProposal
 } = require('../controllers/schedule.controller');
 
 const router = Router();
@@ -12,6 +16,13 @@ const router = Router();
 // GET /schedule/sections or /schedule
 router.get('/sections', getSections);
 router.get('/', getSections);
+
+// Enrolled Schedule state for real-time synchronization across Web & Mobile
+router.get('/enrolled', getEnrolledSchedule);
+router.post('/enrolled', updateEnrolledSchedule);
+router.delete('/enrolled/:id', dropEnrolledSection);
+router.post('/drop', dropEnrolledSection);
+router.post('/fallback-alert', broadcastFallbackProposal);
 
 // POST /schedule/simulate
 router.post('/simulate', simulateSchedule);

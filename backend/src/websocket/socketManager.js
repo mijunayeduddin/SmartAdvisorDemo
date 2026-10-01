@@ -181,7 +181,20 @@ class SocketManager {
     // 4. Client triggering schedule sync: { type: 'SCHEDULE_SYNC', payload: { studentId, ... } }
     if (data.type === 'SCHEDULE_SYNC') {
       const payload = data.payload || {};
+      try {
+        const scheduleCtrl = require('../controllers/schedule.controller');
+        if (payload.schedule && payload.studentId && scheduleCtrl.activeSchedules) {
+          scheduleCtrl.activeSchedules.set(payload.studentId, payload.schedule);
+        }
+      } catch (e) {}
       seatAvailabilityPublisher.notifyScheduleSync(payload);
+      return;
+    }
+
+    // 5. Client broadcasting fallback proposal
+    if (data.type === 'FALLBACK_PROPOSED') {
+      const payload = data.payload || {};
+      this.broadcast('FALLBACK_PROPOSED', payload);
       return;
     }
   }

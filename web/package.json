@@ -1,0 +1,10 @@
+{
+  "name": "@smartadvisor/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SmartAdvisor Web Client (React/Next.js) - To be built in subsequent phase",
+  "scripts": {
+    "dev": "echo \"Web app initialization scheduled for next phase\"",
+    "build": "echo \"No build ready yet\""
+  }
+}

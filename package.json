@@ -1,0 +1,29 @@
+{
+  "name": "smart-advisor-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SmartAdvisor - Academic Advising System for CSE 327 (Monorepo)",
+  "workspaces": [
+    "backend",
+    "web",
+    "shared"
+  ],
+  "scripts": {
+    "start:backend": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "migrate:backend": "npm --prefix backend run migrate",
+    "seed:backend": "npm --prefix backend run seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "keywords": [
+    "academic-advising",
+    "dag",
+    "critical-path",
+    "observer-pattern",
+    "strategy-pattern",
+    "singleton-pattern"
+  ],
+  "author": "SmartAdvisor Team",
+  "license": "MIT"
+}

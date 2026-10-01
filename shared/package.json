@@ -1,0 +1,16 @@
+{
+  "name": "@smartadvisor/shared",
+  "version": "1.0.0",
+  "description": "Shared contracts, constants, and types for SmartAdvisor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Shared package ready\""
+  },
+  "keywords": [
+    "shared",
+    "types",
+    "constants"
+  ],
+  "author": "SmartAdvisor Team",
+  "license": "MIT"
+}

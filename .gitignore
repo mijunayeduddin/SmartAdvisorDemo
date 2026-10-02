@@ -37,6 +37,7 @@ dist/
 build/
 .next/
 out/
+*.tsbuildinfo
 .flutter-plugins
 .flutter-plugins-dependencies
 .dart_tool/

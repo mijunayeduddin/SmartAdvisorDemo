@@ -384,3 +384,176 @@ export function eligibleCourses(
   eligible.sort();
   return eligible;
 }
+
+export interface CoursePathwayResult {
+  upstream: string[];
+  target: string;
+  downstream: string[];
+  fullPath: string[];
+  unlocksCount: number;
+  longestDownstreamLength: number;
+  rationale: string;
+}
+
+/**
+ * Compute the critical pathway passing through a target course,
+ * showing its prerequisite chain (upstream) and the longest downstream chain to graduation.
+ */
+export function criticalPathForCourse(
+  graph: CurriculumGraph,
+  completedCourses: string[],
+  targetCode: string
+): CoursePathwayResult {
+  const normTarget = targetCode.trim();
+  const targetNode = graph.getNode(normTarget);
+  if (!targetNode) {
+    return {
+      upstream: [],
+      target: normTarget,
+      downstream: [],
+      fullPath: [normTarget],
+      unlocksCount: 0,
+      longestDownstreamLength: 0,
+      rationale: `Course ${normTarget} not found in curriculum graph.`
+    };
+  }
+
+  const completedSet = new Set(completedCourses.map((c) => c.trim()));
+
+  // 1. Upstream: trace prerequisite chain leading into target
+  function getUpstreamChain(code: string, visited = new Set<string>()): string[] {
+    const node = graph.getNode(code);
+    if (!node || node.prerequisites.size === 0) return [];
+    visited.add(code);
+
+    let bestChain: string[] = [];
+    for (const prereq of node.prerequisites) {
+      if (visited.has(prereq)) continue;
+      const sub = getUpstreamChain(prereq, new Set(visited));
+      const chain = [...sub, prereq];
+      if (chain.length > bestChain.length) {
+        bestChain = chain;
+      }
+    }
+    return bestChain;
+  }
+
+  const upstream = getUpstreamChain(normTarget);
+
+  // 2. Downstream: trace longest chain of remaining courses unlocked by target
+  function getDownstreamChain(code: string, visited = new Set<string>()): string[] {
+    const node = graph.getNode(code);
+    if (!node || node.dependents.size === 0) return [];
+    visited.add(code);
+
+    let bestChain: string[] = [];
+    for (const dep of node.dependents) {
+      if (visited.has(dep) || completedSet.has(dep)) continue;
+      const sub = getDownstreamChain(dep, new Set(visited));
+      const chain = [dep, ...sub];
+      if (chain.length > bestChain.length) {
+        bestChain = chain;
+      }
+    }
+    return bestChain;
+  }
+
+  const downstream = getDownstreamChain(normTarget);
+  const fullPath = [...upstream, normTarget, ...downstream];
+
+  // Count all unique downstream uncompleted courses reachable from target
+  const allReachable = new Set<string>();
+  const q = [normTarget];
+  while (q.length > 0) {
+    const curr = q.shift()!;
+    const node = graph.getNode(curr);
+    if (!node) continue;
+    for (const dep of node.dependents) {
+      if (!allReachable.has(dep) && !completedSet.has(dep)) {
+        allReachable.add(dep);
+        q.push(dep);
+      }
+    }
+  }
+
+  let rationale = '';
+  if (normTarget === 'CSE311') {
+    rationale = 'Primary Graduation Bottleneck (Rank #1): Directly unlocks Software Engineering (CSE327) and Capstone Sequence (CSE499A & CSE499B).';
+  } else if (normTarget === 'CSE332') {
+    rationale = 'Core Systems Track Milestone: Unlocks Operating Systems (CSE323) and Microprocessor Interfacing (CSE331).';
+  } else if (normTarget === 'CSE373') {
+    rationale = 'Algorithmic Foundation Milestone: Unlocks Concepts of Programming Languages (CSE425) and advanced computer science electives.';
+  } else if (normTarget === 'CSE327') {
+    rationale = 'Software Engineering Milestone: Immediate gatekeeper to Senior Design Project (CSE499A) and Capstone Defense (CSE499B).';
+  } else if (downstream.length > 0) {
+    const nextUnlocks = Array.from(targetNode.dependents).filter(d => !completedSet.has(d));
+    rationale = `Taking ${normTarget} unlocks ${nextUnlocks.join(', ')} and leads along a ${downstream.length + 1}-step chain to graduation.`;
+  } else {
+    rationale = `${normTarget} satisfies required curriculum credits towards degree completion.`;
+  }
+
+  return {
+    upstream,
+    target: normTarget,
+    downstream,
+    fullPath,
+    unlocksCount: allReachable.size,
+    longestDownstreamLength: downstream.length,
+    rationale
+  };
+}
+
+export interface CourseRecommendation {
+  code: string;
+  title: string;
+  score: number;
+  isMilestone: boolean;
+  isEnrolled: boolean;
+  downstreamCount: number;
+  criticalPathLength: number;
+  rationale: string;
+  pathway: string[];
+}
+
+/**
+ * Evaluates all eligible courses and dynamically ranks what is BEST to take right now,
+ * considering milestone weights, unlocking power, and active term schedule enrollments.
+ */
+export function recommendBestCourses(
+  graph: CurriculumGraph,
+  completedCourses: string[],
+  enrolledCourses: string[] = [],
+  creditsEarned?: number
+): CourseRecommendation[] {
+  const eligible = eligibleCourses(graph, completedCourses, creditsEarned);
+  const enrolledSet = new Set(enrolledCourses.map((c) => c.trim().toUpperCase()));
+
+  const recs: CourseRecommendation[] = [];
+
+  for (const code of eligible) {
+    const node = graph.getNode(code);
+    if (!node) continue;
+
+    const pathData = criticalPathForCourse(graph, completedCourses, code);
+    const isEnrolled = enrolledSet.has(code.toUpperCase());
+
+    let score = (pathData.longestDownstreamLength * 40) + (pathData.unlocksCount * 15);
+    if (node.isMilestone) score += 50;
+
+    recs.push({
+      code,
+      title: node.title,
+      score,
+      isMilestone: node.isMilestone,
+      isEnrolled,
+      downstreamCount: pathData.unlocksCount,
+      criticalPathLength: pathData.longestDownstreamLength,
+      rationale: pathData.rationale,
+      pathway: pathData.fullPath
+    });
+  }
+
+  recs.sort((a, b) => b.score - a.score || (b.isMilestone ? 1 : 0) - (a.isMilestone ? 1 : 0));
+  return recs;
+}
+

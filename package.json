@@ -10,6 +10,9 @@
     "mobile"
   ],
   "scripts": {
+    "web": "npm --prefix web run dev",
+    "dev:web": "npm --prefix web run dev",
+    "start:web": "npm --prefix web start",
     "start:backend": "npm --prefix backend start",
     "dev:backend": "npm --prefix backend run dev",
     "migrate:backend": "npm --prefix backend run migrate",

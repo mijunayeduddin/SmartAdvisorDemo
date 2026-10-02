@@ -1,5 +1,32 @@
 import { create } from 'zustand';
-import { Course, Section, StudentContext, FallbackRouteResponse, StrategyMode } from '../types';
+import { Course, Section, StudentContext, FallbackRouteResponse, StrategyMode, CoursePathway, CourseRecommendation, PathwayMode } from '../types';
+import { solvePathwayForCourse, solveBestRecommendations } from '../utils/pathwaySolver';
+
+function refreshDynamicPathways(
+  courses: Course[],
+  enrolled: Section[],
+  selectedCode: string | null,
+  mode: PathwayMode
+) {
+  const completedSet = new Set(
+    courses.filter((c) => c.isCompleted).map((c) => c.code.toUpperCase())
+  );
+  const recommendations = solveBestRecommendations(courses, enrolled, completedSet);
+
+  let activePathway: CoursePathway | null = null;
+  if (mode === 'selected' && selectedCode) {
+    activePathway = solvePathwayForCourse(selectedCode, courses, completedSet);
+  } else if (mode === 'best') {
+    const topRec = recommendations.find((r) => !r.isEnrolled) || recommendations[0];
+    if (topRec) {
+      activePathway = solvePathwayForCourse(topRec.code, courses, completedSet);
+    }
+  } else if (mode === 'curriculum') {
+    activePathway = solvePathwayForCourse('CSE311', courses, completedSet);
+  }
+
+  return { recommendations, activePathway };
+}
 
 interface ScheduleStore {
   courses: Course[];
@@ -8,6 +35,9 @@ interface ScheduleStore {
   enrolledSections: Section[];
   criticalPath: string[];
   eligibleCourses: string[];
+  recommendations: CourseRecommendation[];
+  activePathway: CoursePathway | null;
+  pathwayMode: PathwayMode;
   fallbackProposal: FallbackRouteResponse | null;
   strategy: StrategyMode;
   lastSyncedTimestamp: string | null;
@@ -15,12 +45,17 @@ interface ScheduleStore {
   isLoading: boolean;
   searchQuery: string;
   selectedCourseCode: string | null;
+  selectedDepartment: string;
+  seatFilter: 'all' | 'open' | 'full';
 
   init: () => Promise<void>;
   connectWebSocket: () => void;
   setStrategy: (strategy: StrategyMode) => void;
   setSearchQuery: (query: string) => void;
   setSelectedCourseCode: (code: string | null) => void;
+  setPathwayMode: (mode: PathwayMode) => void;
+  setSelectedDepartment: (dept: string) => void;
+  setSeatFilter: (filter: 'all' | 'open' | 'full') => void;
   simulateAddSection: (courseCode: string, sectionNumber: number) => Promise<FallbackRouteResponse | null>;
   dropSection: (sectionId: string) => void;
   acceptFallback: () => void;
@@ -39,6 +74,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     enrolledSections: [],
     criticalPath: [],
     eligibleCourses: [],
+    recommendations: [],
+    activePathway: null,
+    pathwayMode: 'best',
     fallbackProposal: null,
     strategy: 'MilestonePriority',
     lastSyncedTimestamp: null,
@@ -46,6 +84,8 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     isLoading: true,
     searchQuery: '',
     selectedCourseCode: null,
+    selectedDepartment: 'ALL',
+    seatFilter: 'all',
 
     setStrategy: (strategy: StrategyMode) => {
       set({ strategy });
@@ -56,7 +96,54 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
     },
 
     setSelectedCourseCode: (selectedCourseCode: string | null) => {
-      set({ selectedCourseCode });
+      const state = get();
+      if (selectedCourseCode) {
+        const { recommendations, activePathway } = refreshDynamicPathways(
+          state.courses,
+          state.enrolledSections,
+          selectedCourseCode,
+          'selected'
+        );
+        set({
+          selectedCourseCode,
+          pathwayMode: 'selected',
+          recommendations,
+          activePathway,
+        });
+      } else {
+        const { recommendations, activePathway } = refreshDynamicPathways(
+          state.courses,
+          state.enrolledSections,
+          null,
+          'best'
+        );
+        set({
+          selectedCourseCode: null,
+          pathwayMode: 'best',
+          recommendations,
+          activePathway,
+        });
+      }
+    },
+
+    setPathwayMode: (pathwayMode: PathwayMode) => {
+      const state = get();
+      const targetCode = pathwayMode === 'selected' ? state.selectedCourseCode : null;
+      const { recommendations, activePathway } = refreshDynamicPathways(
+        state.courses,
+        state.enrolledSections,
+        targetCode,
+        pathwayMode
+      );
+      set({ pathwayMode, recommendations, activePathway });
+    },
+
+    setSelectedDepartment: (selectedDepartment: string) => {
+      set({ selectedDepartment });
+    },
+
+    setSeatFilter: (seatFilter: 'all' | 'open' | 'full') => {
+      set({ seatFilter });
     },
 
     init: async () => {
@@ -87,6 +174,14 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         const cPath = courses.filter((c) => c.isCriticalPath).map((c) => c.code);
         const eligible = courses.filter((c) => c.isEligible).map((c) => c.code);
 
+        // Solve initial dynamic recommendations and pathway
+        const { recommendations, activePathway } = refreshDynamicPathways(
+          courses,
+          initialEnrolled,
+          null,
+          'best'
+        );
+
         set({
           courses,
           sections,
@@ -100,6 +195,9 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
           },
           criticalPath: cPath,
           eligibleCourses: eligible,
+          recommendations,
+          activePathway,
+          pathwayMode: 'best',
           lastSyncedTimestamp: new Date().toISOString(),
           isLoading: false,
         });
@@ -111,6 +209,7 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
         set({ isLoading: false });
       }
     },
+
 
     connectWebSocket: () => {
       if (typeof window === 'undefined') return;
@@ -186,8 +285,16 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
                   );
                   updated = [...filtered, payload.section];
                 }
+                const { recommendations, activePathway } = refreshDynamicPathways(
+                  state.courses,
+                  updated,
+                  state.selectedCourseCode,
+                  state.pathwayMode
+                );
                 return {
                   enrolledSections: updated,
+                  recommendations,
+                  activePathway,
                   lastSyncedTimestamp: eventTimestamp,
                 };
               });
@@ -276,8 +383,16 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
 
           if (!alreadyEnrolled) {
             const nextEnrolled = [...state.enrolledSections, targetSection];
+            const { recommendations, activePathway } = refreshDynamicPathways(
+              state.courses,
+              nextEnrolled,
+              state.selectedCourseCode,
+              state.pathwayMode
+            );
             set({
               enrolledSections: nextEnrolled,
+              recommendations,
+              activePathway,
               fallbackProposal: null,
             });
 
@@ -320,9 +435,19 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       const updated = state.enrolledSections.filter(
         (s) => s.id !== sectionId && `${s.course_code}-${s.section_number}` !== sectionId && s.course_code !== sectionId
       );
-      set({ enrolledSections: updated });
+      const { recommendations, activePathway } = refreshDynamicPathways(
+        state.courses,
+        updated,
+        state.selectedCourseCode,
+        state.pathwayMode
+      );
+      set({ 
+        enrolledSections: updated,
+        recommendations,
+        activePathway,
+      });
 
-      // 1. Broadcast immediately to WebSocket Observer (Mobile updates in <50ms)
+      // 1. Broadcast immediately to WebSocket Observer
       if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
         wsInstance.send(JSON.stringify({
           type: 'SCHEDULE_SYNC',
@@ -370,8 +495,17 @@ export const useScheduleStore = create<ScheduleStore>((set, get) => {
       );
       const nextEnrolled = [...filtered, targetSection];
 
+      const { recommendations, activePathway } = refreshDynamicPathways(
+        state.courses,
+        nextEnrolled,
+        state.selectedCourseCode,
+        state.pathwayMode
+      );
+
       set({
         enrolledSections: nextEnrolled,
+        recommendations,
+        activePathway,
         fallbackProposal: null,
       });
 

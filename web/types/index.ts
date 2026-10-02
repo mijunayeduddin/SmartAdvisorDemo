@@ -25,6 +25,7 @@ export interface Section {
   day_of_week?: string;
   start_time?: string;
   end_time?: string;
+  raw_time?: string;
   faculty_name?: string;
   term?: string;
   course_title?: string;
@@ -82,3 +83,27 @@ export interface FallbackRouteResponse {
 }
 
 export type StrategyMode = 'MilestonePriority' | 'MinimizeGaps';
+
+export type PathwayMode = 'selected' | 'best' | 'curriculum';
+
+export interface CoursePathway {
+  upstream: string[];
+  target: string;
+  downstream: string[];
+  fullPath: string[];
+  unlocksCount: number;
+  longestDownstreamLength: number;
+  rationale: string;
+}
+
+export interface CourseRecommendation {
+  code: string;
+  title: string;
+  score: number;
+  isMilestone: boolean;
+  isEnrolled: boolean;
+  downstreamCount: number;
+  criticalPathLength: number;
+  rationale: string;
+  pathway: string[];
+}

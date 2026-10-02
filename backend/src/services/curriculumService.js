@@ -3,6 +3,7 @@ const fs = require('fs');
 const dbPool = require('../patterns/singleton/dbPool');
 const graphCache = require('../patterns/singleton/graphCache');
 const { buildGraph } = require('../../core/graphSolver.ts');
+const { loadAndParseResponseData } = require('../utils/courseDataParser');
 
 const STATIC_COURSES = [
   { code: 'ENG102', title: 'Introduction to Composition', credits: 3.0, department: 'CSE', description: 'Basic English composition and academic writing', is_milestone: false, prerequisites: [] },
@@ -48,35 +49,8 @@ let inMemorySections = null;
 
 function loadFallbackSections() {
   if (inMemorySections) return inMemorySections;
-  const fixturePath = path.resolve(__dirname, '../../scripts/fixtures/offered_courses_snapshot.json');
-  let raw = [];
-  try {
-    raw = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
-  } catch (e) {
-    console.warn('[CurriculumService] Could not read offered_courses_snapshot.json:', e);
-  }
-
-  const courseTitleMap = Object.fromEntries(STATIC_COURSES.map(c => [c.code, c.title]));
-  const milestoneMap = Object.fromEntries(STATIC_COURSES.map(c => [c.code, c.is_milestone]));
-
-  inMemorySections = raw.map((row, idx) => ({
-    id: `sec-${row.courseCode}-${row.sectionNumber}`,
-    course_id: `crs-${row.courseCode}`,
-    course_code: row.courseCode,
-    section_number: Number(row.sectionNumber),
-    capacity: 35,
-    enrolled_count: Math.max(0, 35 - Number(row.seatsAvailable)),
-    seats_available: Number(row.seatsAvailable),
-    room: row.room,
-    day_of_week: row.days,
-    start_time: row.startTime,
-    end_time: row.endTime,
-    faculty_name: row.faculty,
-    term: 'Fall 2026',
-    course_title: courseTitleMap[row.courseCode] || row.courseCode,
-    course_credits: 3,
-    is_milestone: Boolean(milestoneMap[row.courseCode]),
-  }));
+  const parsedData = loadAndParseResponseData();
+  inMemorySections = parsedData.sections;
   return inMemorySections;
 }
 
@@ -147,6 +121,40 @@ class CurriculumService {
    * Get all courses catalog with optional department filter
    */
   async getAllCourses(department) {
+    const parsedData = loadAndParseResponseData();
+    const parsedMap = new Map(parsedData.courses.map((c) => [c.code, c]));
+
+    // Start with static DAG courses
+    const mergedMap = new Map();
+    for (const c of STATIC_COURSES) {
+      mergedMap.set(c.code, {
+        id: `crs-${c.code}`,
+        code: c.code,
+        title: c.title,
+        credits: c.credits,
+        department: c.department,
+        description: c.description,
+        isMilestone: Boolean(c.is_milestone),
+        prerequisites: c.prerequisites || []
+      });
+    }
+
+    // Add all courses from response.json
+    for (const c of parsedData.courses) {
+      if (!mergedMap.has(c.code)) {
+        mergedMap.set(c.code, {
+          id: c.id || `crs-${c.code}`,
+          code: c.code,
+          title: c.title,
+          credits: c.credits,
+          department: c.department,
+          description: c.description,
+          isMilestone: Boolean(c.isMilestone),
+          prerequisites: c.prerequisites || []
+        });
+      }
+    }
+
     try {
       let courseQuery = `
         SELECT 
@@ -164,46 +172,36 @@ class CurriculumService {
         FROM courses c
         LEFT JOIN prerequisites pr ON pr.course_id = c.id
         LEFT JOIN courses p ON p.id = pr.prereq_course_id
-      `;
-
-      const params = [];
-      if (department) {
-        params.push(department);
-        courseQuery += ` WHERE c.department = $1`;
-      }
-
-      courseQuery += `
         GROUP BY c.id, c.code, c.title, c.credits, c.department, c.description, c.is_milestone
         ORDER BY c.code;
       `;
 
-      const res = await dbPool.query(courseQuery, params);
-      return res.rows.map((row) => ({
-        id: row.id,
-        code: row.code,
-        title: row.title,
-        credits: Number(row.credits),
-        department: row.department,
-        description: row.description,
-        isMilestone: Boolean(row.is_milestone),
-        prerequisites: row.prerequisites || []
-      }));
-    } catch (e) {
-      let list = STATIC_COURSES;
-      if (department) {
-        list = list.filter((c) => c.department === department);
+      const res = await dbPool.query(courseQuery);
+      if (res.rows && res.rows.length > 0) {
+        for (const row of res.rows) {
+          mergedMap.set(row.code, {
+            id: row.id,
+            code: row.code,
+            title: row.title,
+            credits: Number(row.credits),
+            department: row.department,
+            description: row.description,
+            isMilestone: Boolean(row.is_milestone),
+            prerequisites: row.prerequisites || []
+          });
+        }
       }
-      return list.map((c) => ({
-        id: `crs-${c.code}`,
-        code: c.code,
-        title: c.title,
-        credits: c.credits,
-        department: c.department,
-        description: c.description,
-        isMilestone: c.is_milestone,
-        prerequisites: c.prerequisites
-      }));
+    } catch (e) {
+      // Database unavailable, continuing with merged in-memory/response catalog
     }
+
+    let allCourses = Array.from(mergedMap.values());
+    if (department && department.trim() && department.toUpperCase() !== 'ALL') {
+      const deptUpper = department.trim().toUpperCase();
+      allCourses = allCourses.filter((c) => c.department.toUpperCase() === deptUpper);
+    }
+
+    return allCourses.sort((a, b) => a.code.localeCompare(b.code));
   }
 
   /**
@@ -299,7 +297,7 @@ class CurriculumService {
       `;
 
       const res = await dbPool.query(query, [term]);
-      if (res.rows && res.rows.length > 0) {
+      if (res.rows && res.rows.length >= 700) {
         return res.rows;
       }
       return loadFallbackSections();

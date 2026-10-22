@@ -1,0 +1,90 @@
+Code and Name,Type,Credit Hours,Pre-requisites
+ENG 102 Introduction to Composition,,3,None
+ENG 103 Intermediate Composition,,3,ENG 102/Waiver
+ENG 111 Public Speaking,,3,ENG 103
+PHI 101 Introduction to Philosophy,,3,None
+PHI 104 Introduction to Ethics,,3,None
+LBA 101 Bangladesh Culture and Heritage,,3,None
+LBA 102 Introduction to World Civilization,,3,None
+POL 101 Introduction to Political Science,,3,None
+POL 104 Introduction to Governance,,3,None
+ECO 101 Introduction to Microeconomics,,3,None
+ECO 104 Introduction to Macroeconomics,,3,None
+SOC 101 Introduction to Sociology,,3,None
+ENV 203/ GEO 205 Introduction to Bangladesh Geography,,3,None
+ANT 101 Introduction to Anthropology,,3,None
+BIO 103 Biology I,,4,None
+MAT 116 Pre-Calculus,,3,None
+MAT 120 Calculus-I,,3,MAT 116
+MAT 125 Linear Algebra,,3,MAT 116 or an adequate test score
+MAT 130 Calculus II,,3,MAT 120
+MAT 250 Calculus III,,3,MAT 130
+MAT 350 Engineering Mathematics,,3,MAT 250
+MAT 361 Probability and Statistics,,3,MAT 250
+PHY 107 Physics I,,4,MAT 120 and Physics in HSC/A Level.
+PHY 108 Physics II,,4,"MAT 240, PHY 107"
+CHE 101 Chemistry I,,4,None
+EEE 452 Engineering Economics,"Required, Lecture",3,None
+CEE 110 Engineering Drawing (EEE 154),,1,None
+CSE 115 Programming language I,"Core, Engineering, Lecture",3,None
+CSE 115L Programming language I Lab,"Core, Engineering, Lab",1,None
+CSE 215 Programming Language II,"Core, Engineering, Lecture",3,CSE173 Programming Language I
+CSE 215L Programming Language II Lab,"Required, Engineering, Lab",1,CSE173 Programming Language I
+CSE 173 Discrete Mathematics,Core,3,"CSE 115, CSE 115L"
+CSE 225 Data Structures and Algorithms,Mandatory,3,CSE 215 (Computer Programming II)
+CSE 225L Data Structures and Algorithms Lab,Mandatory,0,CSE 215 (Computer Programming II)
+CSE 231 Digital Logic design,"Core, Engineering, Lecture",3,CSE173 Discrete Mathematics
+CSE 231L Digital Logic design Lab,"Required, Engineering, Lab",0,CSE173 Discrete Mathematics
+CSE 299 Junior Design Course,Core,1,Completion of 60 credits
+EEE 141 Electrical Circuits I,"Core, Engineering, Lecture",3,MAT 120 (Calculus and Analytic Geometry I)
+EEE 141L Electrical Circuits I Lab,"Core, Engineering, Lab",1,MAT 120 (Calculus and Analytic Geometry I)
+EEE 111/ ETE 111 Analog Electronics-I,"Required, Engineering, Lecture",3,EEE 141/ETE 141 Electrical Circuits-I
+EEE 111L/ ETE 111L Analog Electronics-I Lab,"Required, Engineering, Lab",1,EEE 141/ETE 141 Electrical Circuits-I
+CSE 311 Database Systems,Core,3,CSE 225
+CSE 311L Database Systems Lab,Core,0,CSE 225
+CSE 323 Operating Systems Design,Core,3,CSE 332
+CSE 327 Software Engineering,Core,3,CSE 311
+CSE 331 Microprocessor Interfacing & Embedded System,"Required, Engineering, Lecture",3,"CSE 332, Computer Organization & Architecture"
+CSE 331L Microprocessor Interfacing & Embedded System Lab,"Required, Engineering, Lab",0,"CSE 332, Computer Organization & Architecture"
+CSE 332 Computer Organization and Architecture,"Required, Engineering, Lecture + Lab",3,CSE 231 Digital Logic Design
+CSE 373 Design and Analysis of Algorithms,Core,3,"CSE 225 – Data Structure and Algorithms, MAT 361 – Probability and Statistics"
+CSE 325/CSE 425 Concepts of Programming Language,Core,3,CSE 327
+CSE 498/EEE 498/ETE 498 Internship/Co-op/Directed Research,Required,0,Completion of 80 credits
+CSE499A/EEE499A/ETE499A Senior Design I,"Required, Engineering, Lab",1.5,"Completion of at least 100 credit hours including all the major core courses, math and science courses, Ethics, Language and Communication related courses."
+CSE499B/EEE499B/ETE499B Senior Design II,"Required, Engineering, Lab",1.5,Completion of CSE499A/EEE499A/ETE499A – Senior Design I
+CSE 417 Numerical Methods,Elective,3,"CSE 225, MAT 125, MAT 240"
+CSE 401 Advanced Programming Techniques,Elective,3,None
+CSE 418 Computer Graphics,Elective,3,"CSE 225, CSE 332"
+CSE 426 Compiler Constructions,Elective,3,CSE 332
+CSE 473 Theory of Computation,Elective,3,"CSE 173, CSE 225"
+CSE 491 Special Topics,Elective,3,None
+CSE 411 Advanced Database Systems,Elective,3,CSE 311
+CSE 424 CSE 424 Object-Oriented Software Developments,Elective,3,CSE 225 and consent of the instructor.
+CSE 427 Software Quality Assurances & Testing,Elective,3,CSE 327 or Consent from Instructor
+CSE 428 Software Process Management,Elective,3,CSE 327
+CSE 429 Software System Architecture,Elective,3,CSE 327
+CSE 492 Special Topics,Elective,3,None
+CSE 422 CSE 422 Modelling and Simulation,Elective,3,None
+CSE 438 CSE 438 Data Communication & Network,Elective,3,CSE 215
+CSE 482 Internet and Web Technology,Elective,3,CSE 338
+CSE 485 Digital Signal Processing,Elective,3,None
+CSE 486 Mobile and Wireless Application Development,Elective,3,None
+CSE 493 CSE 493 Special Topics,Elective,3,None
+CSE 433 Advanced Computer Architecture,Major Elective,3,CSE 331
+CSE 435 Introduction to VLSI Design,Elective,3,"EEE111, CSE 231/EEE211"
+"CSE 413 Verilog HDL: Modelling, Simulation and synthesis",Elective,3,CSE 231/EEE 211
+CSE 414 Advanced Chip Design Methodology and Optimiza.using HDL,Elective,3,CSE 413
+CSE 494 Special Topics,Elective,3,None
+CSE 419 Data Mining,,3,None
+CSE 440 Artificial Intelligence,,3,CSE 225 and MAT 361; or consent of instructor.
+CSE 445 Machine Learning,Elective,3,CSE 348 or Consent from Instructor
+CSE 465 Pattern Recognition and Neural Network,Elective,3,CSE 373
+CSE 467 Digital Image Processing,Elective,3,None
+CSE 468 Computer Vision,Elective,3,CSE 440 (Artificial Intelligence)
+,,,None
+CSE 495 Special Topics,Elective,3,None
+CSE 446 Introductions to Bioinformatics,Elective,3,None
+CSE 447 Molecular Biology,Elective,3,None
+CSE 448 Genome Sequence & Analysis,Elective,3,None
+CSE 449 Structural Bioinformatics,Elective,3,None
+CSE 496 CSE 496 Special Topics,Elective,3,None

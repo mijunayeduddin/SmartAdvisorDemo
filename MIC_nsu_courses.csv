@@ -1,0 +1,51 @@
+Code and Name,Type,Credit Hours,Pre-requisites
+ENG 102 Introduction to Composition,"GED, Foundation (Waivable)",3,None
+ENG 103 Intermediate Composition,GED,3,ENG 102/Waiver
+ENG 105 Advanced Composition,GED,3,ENG 103
+MAT 116 Pre-Calculus,GED,3,None
+BEN 205 Bengali Language and Literature,GED,3,ENG 105
+MIS 107 Computer Information Systems,GED,3,None
+BUS 172 Introduction to Statistics,GED,3,None
+HIS 103 Emergence of Bangladesh,GED,3,None
+POL 101 Introduction to Political Science / POL 104 / ECO 101 / ECO 104 / SOC 101 / ANT 101,"GED, Social Science Elective",3,None
+BIO 103 Biology I,School Core,3,None
+CHE 101 General Chemistry I,School Core,3,None
+BIO 103L Biology I Lab,School Core,1,BIO 103 (Co-requisite)
+CHE 101L General Chemistry I Lab,School Core,1,CHE 101 (Co-requisite)
+BIO 201 General Microbiology,School Core,3,BIO 103
+BIO 202/MIC 101 Basic Microbiology,School Core,3,BIO 103
+CHE 201 Organic Chemistry,School Core,3,CHE 101
+BIO 201L General Microbiology Lab,School Core,1,BIO 103L
+BIO 202L Basic Microbiology Lab,School Core,1,"BIO 103L, BIO 202"
+CHE 202 Bio-organic Chemistry,School Core,3,CHE 101
+MIC 203 Chemistry of Microorganisms,School Core,3,"BIO 201, BIO 202/MIC 101"
+CHE 202L Bio-organic Chemistry Lab,School Core,1,CHE 101L
+BBT 203 Biostatistics,School Core,3,"BIO 201, BUS 172"
+MIC 202 Basic Techniques in Microbiology,Major Core,3,"CHE 101, BIO 202/MIC 101"
+MIC 307 Microbial Genetics,Major Core,3,"BIO 201, MIC 202"
+MIC 314 Environmental Microbiology and Bioremediation,Major Core,3,"BIO 202, MIC 201"
+MIC 315 Infectious Diseases and Diagnostic Microbiology,Major Core,3,"MIC 202, MIC 203"
+MIC 207 Microbial Physiology and Metabolism,Major Core,3,"CHE 202, MIC 203, MIC 309"
+MIC 316 Molecular Biology,Major Core,3,MIC 307
+MIC 315L Diagnostic Microbiology Lab,Major Core,1,"BIO 202L, MIC 315"
+MIC 206 Microbial Taxonomy and Diversity,Major Core,3,MIC 316
+MIC 317 Immunology,Major Core,3,"MIC 307, MIC 315"
+MIC 316L Molecular Biology Lab,Major Core,1,"BIO 201L, MIC 316"
+MIC 401 Microbial Biotechnology,Major Core,3,"MIC 316, MIC 317"
+MIC 412 Bacterial Pathogenesis,Major Core,3,"MIC 315, MIC 316"
+MIC 413 Virology,Major Core,3,"MIC 316, MIC 317"
+MIC 317L Immunology Lab,Major Core,1,"BIO 202L, MIC 317"
+MIC 414 Food Microbiology and Quality Control,Major Core,3,MIC 401
+MIC 415 Mycology,Major Core,3,MIC 314
+MIC 413L Virology Lab,Major Core,1,"BIO 202L, MIC 413"
+MIC 414L Food Microbiology Lab,Major Core,1,"BIO 202L, MIC 414"
+MIC 415L Mycology Lab,Major Core,1,"BIO 202L, MIC 415"
+MIC 498 Research Project / Internship,Major Core,4,"BIO 201L, BIO 202L, MIC 315L, MIC 316L"
+MIC 201 Microbial Ecology,Major Elective,3,BIO 202
+MIC 309 Enzymology,Major Elective,3,MIC 203
+MIC 311 Bioinformatics,Major Elective,3,MIC 316
+MIC 318 Agricultural Microbiology and Plant Pathology,Major Elective,3,"MIC 201, MIC 203"
+MIC 404 Pharmaceutical Microbiology,Major Elective,3,MIC 401
+MIC 416 Cell Biology,Major Elective,3,MIC 316
+MIC 417 Applied Immunology and Immunogenetics,Major Elective,3,MIC 317
+MIC 418 Algology,Major Elective,3,MIC 206

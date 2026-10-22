@@ -1,0 +1,127 @@
+Code and Name,Type,Credit Hours,Pre-requisites
+ENG 102 Introduction to Composition,"GED, Foundation (Waivable)",3,None
+BUS 112 Introduction to Business Mathematics,"GED, Foundation (Waivable)",3,None
+ENG 103 Intermediate Composition,GED,3,ENG 102/Waiver
+ENG 105 Advanced Composition,GED,3,ENG 103
+BEN 205 Bengali Language and Literature,GED,3,ENG 105
+ENG 115 Introduction to Literature,GED (For 143-162),3,ENG 103
+PHI 401 Business Ethics / PHI 104 Introduction to Ethics,GED,3,None
+HIS 103 Emergence of Bangladesh,GED,3,None
+HIS 101 Bangladesh History and Culture,"GED, History Elective",3,None
+HIS 102 Introduction to World Civilization,"GED, History Elective",3,None
+HIS 202 History of Modern World,"GED, History Elective",3,None
+HIS 205 World History since 1945,"GED, History Elective",3,None
+POL 101 Introduction to Political Science,"GED, Political Science Elective",3,None
+POL 104 Introduction to Governance,"GED, Political Science Elective",3,None
+PAD 201 Introduction to Public Administration,"GED, Political Science Elective",3,None
+SOC 101 Introduction to Sociology,"GED, Social Science Elective",3,None
+ENV 203/GEO 205 Introduction to Bangladesh Geography,"GED, Social Science Elective",3,None
+ANT 101 Introduction to Anthropology,"GED, Social Science Elective",3,None
+BIO 103 Biology I,"GED, Science Elective, Lecture",3,None
+BIO 103L Biology I Lab,"GED, Science Elective, Lab",1,BIO 103 (Co-requisite)
+ENV 107 Introduction to Environmental Science,"GED, Science Elective, Lecture",3,None
+ENV 107L Introduction to Environmental Science Lab,"GED, Science Elective, Lab",1,ENV 107 (Co-requisite)
+PBH 101 Introduction to Public Health,"GED, Science Elective, Lecture",3,None
+PBH 101L Introduction to Public Health Lab,"GED, Science Elective, Lab",1,PBH 101 (Co-requisite)
+PSY 101 Introduction to Psychology,"GED, Science Elective, Lecture",3,None
+PSY 101L Introduction to Psychology Lab,"GED, Science Elective, Lab",1,PSY 101 (Co-requisite)
+PHY 107 Physics I,"GED, Science Elective, Lecture",3,None
+PHY 107L Physics I Lab,"GED, Science Elective, Lab",1,PHY 107 (Co-requisite)
+CHE 101 Chemistry I,"GED, Science Elective, Lecture",3,None
+CHE 101L Chemistry I Lab,"GED, Science Elective, Lab",1,CHE 101 (Co-requisite)
+ECO 101 Introduction to Microeconomics,School Core,3,None
+ECO 104 Introduction to Macroeconomics,School Core,3,ECO 101
+MIS 107 Computer Information Systems,School Core,3,None
+BUS 251 Business Communication,School Core,3,ENG 105
+BUS 172 Introduction to Statistics,School Core,3,BUS 112/Waiver
+BUS 173 Applied Statistics,School Core,3,BUS 172
+BUS 135 Applied Business Mathematics,School Core,3,BUS 112/Waiver
+ACT 201 Introduction to Financial Accounting,BBA Core,3,None
+ACT 202 Introduction to Managerial Accounting,BBA Core,3,ACT 201
+FIN 254 Introduction to Financial Management,BBA Core,3,"ACT 201, BUS 172"
+LAW 200 Business Law and Ethics,BBA Core,3,None
+INB 372 International Business,BBA Core,3,"MKT 202, ECO 104"
+MKT 202 Introduction to Marketing,BBA Core,3,None
+MIS 207 E-Business,BBA Core,3,MIS 107
+MGT 212 Organizational Management,BBA Core,3,None
+MGT 351 Human Resource Management,BBA Core,3,MGT 212
+MGT 314 Operations and Supply Chain Management,BBA Core,3,"BUS 135, BUS 172, MKT 202, MGT 212"
+MGT 368 Entrepreneurship,BBA Core,3,"FIN 254, MKT 202, MGT 212"
+MGT 489 Strategic Management,BBA Core,3,Completion of 100 credits
+BUS 498 Internship,"Internship, Mandatory",4,Completion of all coursework
+FIN 433 Financial Markets and Institutions,Major Core (FIN),3,FIN 254
+FIN 435 Investment Theory,Major Core (FIN),3,"FIN 254, BUS 173"
+FIN 440 Corporate Finance,Major Core (FIN),3,"FIN 254, BUS 173"
+FIN 444 International Financial Management,Major Core (FIN),3,"FIN 254, INB 372"
+FIN 340 Working Capital Management,Major Elective (FIN),3,FIN 254
+FIN 410 Financial Statement Analysis,Major Elective (FIN),3,"ACT 202, FIN 254"
+FIN 455 Financial Modelling Using Excel,Major Elective (FIN),3,"FIN 435, FIN 440"
+FIN 464 Bank Management,Major Elective (FIN),3,FIN 433
+FIN 470 Insurance and Risk Management,Major Elective (FIN),3,FIN 254
+FIN 480 Financial Derivatives,Major Elective (FIN),3,FIN 435
+ACT 310 Intermediate Accounting I,Major Core (ACT),3,ACT 202
+ACT 320 Intermediate Accounting II,Major Core (ACT),3,ACT 310
+ACT 360 Advanced Managerial Accounting,Major Core (ACT),3,ACT 202
+ACT 370 Taxation,Major Core (ACT),3,ACT 201
+ACT 380 Audit and Assurance,Major Elective (ACT),3,ACT 310
+ACT 410 Financial Statement Analysis,Major Elective (ACT),3,"ACT 202, FIN 254"
+ACT 430 Accounting Information Systems,Major Elective (ACT),3,"ACT 202, MIS 107"
+ACT 460 International Financial Reporting Standards,Major Elective (ACT),3,ACT 320
+MKT 337 Promotional Management,Major Core (MKT),3,MKT 202
+MKT 344 Consumer Behavior,Major Core (MKT),3,MKT 202
+MKT 460 Strategic Marketing,Major Core (MKT),3,"MKT 337, MKT 344"
+MKT 470 Marketing Research,Major Core (MKT),3,"MKT 202, BUS 173"
+MKT 330 Digital Marketing,Major Elective (MKT),3,"MKT 202, MIS 207"
+MKT 355 Service Marketing,Major Elective (MKT),3,MKT 202
+MKT 382 International Marketing,Major Elective (MKT),3,"MKT 202, INB 372"
+MKT 412 Services Marketing Management,Major Elective (MKT),3,MKT 202
+MKT 417 Export-Import Management,Major Elective (MKT),3,"MKT 202, INB 372"
+MKT 445 Sales Management,Major Elective (MKT),3,MKT 202
+MKT 450 Brand Management,Major Elective (MKT),3,"MKT 337, MKT 344"
+MKT 465 Retail Management,Major Elective (MKT),3,MKT 202
+MKT 475 Marketing Analytics,Major Elective (MKT),3,MKT 470
+HRM 340 Training and Development,Major Core (HRM),3,MGT 351
+HRM 360 Manpower Planning and Forecasting,Major Core (HRM),3,MGT 351
+HRM 380 Compensation Theory and Administration,Major Core (HRM),3,MGT 351
+HRM 450 Industrial Relations,Major Core (HRM),3,MGT 351
+HRM 370 Managerial Skill Development,Major Elective (HRM),3,MGT 351
+HRM 410 Contemporary Issues in HRM,Major Elective (HRM),3,MGT 351
+HRM 470 Negotiations,Major Elective (HRM),3,MGT 351
+HRM 499 HRM Capstone / Special Topics,Major Elective (HRM),3,MGT 351
+MGT 321 Organizational Behavior,Major Core (MGT),3,MGT 212
+MGT 330 Designing Effective Organizations,Major Core (MGT),3,MGT 212
+HRM 370 Managerial Skill Development,Major Core (MGT),3,MGT 351
+MGT 410 Organization Development and Change Management,Major Core (MGT),3,MGT 212
+MGT 350 Total Quality Management,Major Elective (MGT),3,MGT 314
+MGT 490 Project Management,Major Elective (MGT),3,MGT 314
+MIS 210 Concepts of Computer Programming,Major Core (MIS),3,MIS 107
+MIS 310 Systems Analysis and Design,Major Core (MIS),3,MIS 207
+MIS 320 Fundamentals of Database Management Systems,Major Core (MIS),3,MIS 207
+MIS 470 Management of Information Institutions,Major Core (MIS),3,MIS 310
+MIS 330 Digital Marketing,Major Elective (MIS),3,MIS 207
+MIS 410 Business Intelligence,Major Elective (MIS),3,"MIS 207, BUS 173"
+MIS 450 Data Communications and Networking,Major Elective (MIS),3,MIS 207
+MIS 460 Enterprise Resource Planning,Major Elective (MIS),3,MIS 207
+MIS 480 Web Application and Internet,Major Elective (MIS),3,MIS 210
+MIS 499 Special Topics in MIS,Major Elective (MIS),3,MIS 310
+INB 400 International Trade and Finance,Major Core (INB),3,"INB 372, FIN 254"
+INB 480 Global Business Strategy,Major Core (INB),3,INB 372
+INB 490 Cross-Cultural Management,Major Core (INB),3,"INB 372, MGT 212"
+MKT 382 International Marketing,Major Core (INB),3,"MKT 202, INB 372"
+INB 350 International Business Negotiations,Major Elective (INB),3,INB 372
+INB 355 Country Risk Analysis,Major Elective (INB),3,INB 372
+INB 410 International Competitiveness,Major Elective (INB),3,INB 372
+INB 415 Emerging Economies,Major Elective (INB),3,INB 372
+INB 450 Global Supply Chain Management,Major Elective (INB),3,"INB 372, MGT 314"
+INB 495 Special Topics in International Business,Major Elective (INB),3,INB 372
+SCM 310 Logistics and Transportation,Major Core (SCM),3,MGT 314
+SCM 320 Global Procurement and Sourcing,Major Core (SCM),3,MGT 314
+SCM 450 Global Supply Chain Management,Major Core (SCM),3,MGT 314
+MGT 460 Six Sigma and Quality Management,Major Core (SCM),3,MGT 314
+SCM 360 Service Operations Management,Major Elective (SCM),3,MGT 314
+SCM 390 Inventory and Warehouse Management,Major Elective (SCM),3,MGT 314
+SCM 470 Supply Chain Analytics,Major Elective (SCM),3,MGT 314
+ECO 201 Intermediate Microeconomic Theory I,Major Core (ECO),3,"ECO 101, BUS 135"
+ECO 204 Intermediate Macroeconomic Theory I,Major Core (ECO),3,"ECO 104, BUS 135"
+ECO 349 Econometrics,Major Core (ECO),3,"BUS 173, ECO 101, ECO 104"
+ECO 328 International Economics,Major Core (ECO),3,"ECO 101, ECO 104"
